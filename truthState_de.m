@@ -1,4 +1,3 @@
-function xdot = truthState_de( x, input)
 %truthState_de computes the derivative of the truth state
 %
 % Inputs:
@@ -8,20 +7,33 @@ function xdot = truthState_de( x, input)
 % Outputs
 %   xdot = truth state derivative (mixed units)
 %
-% Example Usage
-% xdot = truthState_de( x, input)
+function xdot = truthState_de(x, input)
+    %%---------------------------------------------------------------------------
+    %% Unpack the inputs
+    simpar = input.simpar;
+    omega  = input.u;
+    w      = input.w;
 
-% Author: Randy Christensen
-% Date: 21-May-2019 10:40:10
-% Reference: none
-% Copyright 2019 Utah State University
+    %%---------------------------------------------------------------------------
+    %% Compute parameters
+    % Convert state into structure
+    s = extract_state(x, simpar, 'truth');
 
-%% Unpack the inputs
-simpar = input.simpar;
-omega = input.u;
-w = input.w;
-%% Compute individual elements of x_dot
+    % Create moon quaternion
+    q_moon  = [0; 0; 0; simpar.general.W_MOON];
 
-%% Assign to output
-xdot
+    %%---------------------------------------------------------------------------
+    %% Assign to output
+    % Initialize xdot
+    xdot = zeros(simpar.states.nx,1);
+
+    % Make assignments
+    xdot(simpar.states.ix.pos)      = s.vel;
+    xdot(simpar.states.ix.vel)      = calc_grav(s.pos, simpar) + input.thrust + w;
+    xdot(simpar.states.ix.cam)      = ecrv(s.cam, simpar.general.tau_c, w);
+    xdot(simpar.states.ix.acc_bias) = ecrv(s.bias, simpar.general.tau_b, w);
+    xdot(simpar.states.ix.pos_f1)   = zeros(3,1);
+    xdot(simpar.states.ix.pos_f2)   = zeros(3,1);
+    xdot(simpar.states.ix.pos_f3)   = zeros(3,1);
+    xdot(simpar.states.ix.mcmf_att) = 1/2*quatmult(q_moon, s.qm);
 end

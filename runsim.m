@@ -60,9 +60,17 @@ xhat_buff(:,1) = initialize_nav_state(x_buff(:,1), simpar);
 
 %%===============================================================================
 %% Miscellaneous calcs
+% Initialize values
+s                 = extract_state(x_buff(:,1), simpar, 'truth');
+input_init.Tib    = Ti2b(s.pos, s.vel, simpar);
+input_init.n_a    = zeros(3,1);
+input_init.simpar = simpar;
+
 % Synthesize continuous sensor data at t_n-1
-%% TODO: Implement
-% ytilde_buff(:,1) = contMeas();
+ytilde_buff(:,1) = contMeas(x_buff(:,1), input_init);
+
+% Calculate thrust from measurement
+input_init.thrust = calc_thrust(x_buff(:,1), input_init);
 
 %Initialize the measurement counter
 k = 1;
@@ -85,19 +93,27 @@ end
 %%===============================================================================
 %% Loop over each time step in the simulation
 for i=2:nstep
+    %----------------------------------------------------------------------------
     % Propagate truth states to t_n
     %   Realize a sample of process noise (don't forget to scale Q by 1/dt!)
     %   Define any inputs to the truth state DE
     %   Perform one step of RK4 integration
 %% TODO: Implement
-    % input_truth.u      = [];
-    % input_truth.w      = [];
-    % input_truth.simpar = simpar;
-    % x_buff(:,i)        = rk4('truthState_de', x_buff(:,i-1), input_truth, simpar.general.dt);
+    s                  = extract_state(x_buff(:,i-1), simpar, 'truth');
+
+    input_truth.u      = zeros(3,1);
+    input_truth.w      = zeros(3,1);
+    input_truth.n_a    = zeros(3,1);
+    input_truth.thrust = calc_thrust(x_buff(:,i-1), input_truth);
+
+    input_truth.simpar = simpar;
+    input_truth.Tib    = Ti2b(s.pos, s.vel, simpar);
+    x_buff(:,i)        = rk4('truthState_de', x_buff(:,i-1), input_truth, simpar.general.dt);
 
     % Synthesize continuous sensor data at t_n
-    % ytilde_buff(:,i) = contMeas();
+    ytilde_buff(:,i) = contMeas(x_buff(:,i), input_truth);
 
+    %----------------------------------------------------------------------------
     % Propagate navigation states to t_n using sensor data from t_n-1
     %   Assign inputs to the navigation state DE
     %   Perform one step of RK4 integration
@@ -111,6 +127,7 @@ for i=2:nstep
 %% TODO: Implement
     % P_buff(:,:,i)    = rk4('navCov_de', P_buff(:,:,i-1), input_cov, simpar.general.dt);
 
+    %----------------------------------------------------------------------------
     % Propagate the error state from tn-1 to tn if errorPropTestEnable == 1
 %% TODO: Implement
     % if simpar.general.errorPropTestEnable
@@ -121,6 +138,7 @@ for i=2:nstep
             % input_delx, simpar.general.dt);
     % end
 
+    %----------------------------------------------------------------------------
     % If discrete measurements are available, perform a Kalman update
     if abs(t(i)-t_kalman(k+1)) < simpar.general.dt*0.01
         %   Check error state propagation if simpar.general.errorPropTestEnable = true

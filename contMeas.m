@@ -1,21 +1,35 @@
-function [ ytilde ] = contMeas( )
 %contInertialMeas synthesizes noise measurements used to propagate the
 %navigation state
 %
 % Inputs:
-%   Input1 = description (units)
-%   Input2 = description (units)
+%   x    : Truth state vector
+%   input: Structure of parameters used for continuous measurement
 %
 % Outputs
-%   Output1 = description (units)
-%   Output2 = description (units)
+%   a_meas: Continuous measurement
 %
-% Example Usage
-% [ output_args ] = contInertialMeas( input_args )
+function [ a_meas ] = contMeas(x, input)
+    %%---------------------------------------------------------------------------
+    % Extract input parameters
+    Tib    = input.Tib;
+    n_a    = input.n_a;
+    simpar = input.simpar;
 
-% Author: 
-% Date: 31-Aug-2020 15:46:59
-% Reference: 
-% Copyright 2020 Utah State University
+    %%---------------------------------------------------------------------------
+    % Convert state into structure
+    s = extract_state(x, simpar, 'truth');
 
+    %%---------------------------------------------------------------------------
+    % Calcualte gravity
+    a_grav = calc_grav(simpar.general.R_M, simpar);
+
+    %%---------------------------------------------------------------------------
+    % Calculate thrust
+
+    % TODO: Consider passsing through as input parameter and calculate thrust
+    %       in runsim.m
+    accel_t = Tib*(simpar.general.n*a_grav*Tib(1,:)');
+
+    % Calculate thrust measurement
+    a_meas  = accel_t + s.bias + n_a;
 end
