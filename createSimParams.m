@@ -89,12 +89,17 @@ simparams.states.nxfe = max(t.error_end_idx);
 %% Create reference trajectory simparams
 %With all process noise, initial conditions, and measurement noise turned off)
 simparamsref = simparams;
-truthInitialUncertainty = fieldnames(simparamsref.truth.ic);
-for i=1:length(truthInitialUncertainty)
-    simparamsref.truth.ic.(truthInitialUncertainty{i}) = 0;
-end
-truthParams = fieldnames(simparamsref.truth.params);
-for i=1:length(truthParams)
-    simparamsref.truth.params.(truthParams{i}) = 0;
-end
-end
+
+% If checkProp is enabled, don't zero out the truth state in simparamsref
+if ~simparams.sim.checkProp
+    truthInitialUncertainty = fieldnames(simparamsref.truth.ic);
+    for i=1:length(truthInitialUncertainty)
+        simparamsref.truth.ic.(truthInitialUncertainty{i}) = 0;
+    end
+
+    truthParams = fieldnames(simparamsref.truth.params);
+    for i=1:length(truthParams)
+        simparamsref.truth.params.(truthParams{i}) = 0;
+    end % for
+end % if
+end % function

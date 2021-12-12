@@ -1,4 +1,3 @@
-function checkErrorPropagation( x, xhat, delx_linear, simpar)
 %checkErrorPropagation checks the linear propagation of errors
 % Inputs:
 %   x = truth state
@@ -12,9 +11,12 @@ function checkErrorPropagation( x, xhat, delx_linear, simpar)
 % Date: 25-Jan-2019 12:27:36
 % Reference: 
 % Copyright 2018 Utah State University
+function checkErrorPropagation(x, xhat, delx_linear, simpar)
+    delx_nonlinear = calcErrors(xhat, x, simpar);
+    propError      = delx_linear - delx_nonlinear;
+    results        = table(delx_linear, delx_nonlinear, propError);
 
-delx_nonlinear = calcErrors(xhat, x, simpar);
-propError = delx_linear - delx_nonlinear;
-results = table(delx_linear, delx_nonlinear, propError);
-disp(results)
+    if simpar.sim.checkProp
+        disp(results)
+    end
 end

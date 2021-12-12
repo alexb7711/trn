@@ -2,7 +2,7 @@
 %the initial covariance matrix
 %
 % Inputs:
-%   initial_conditions: The initial conditions valus from simpar.truth.ic
+%   simpar : Simulation parameters
 %
 % Outputs:
 %   x: Initialized truth state vector
@@ -12,6 +12,6 @@
 % covariance matrix.  One realistic way to do this is to set the true 
 % vehicle states to the same thing every time, and randomize any sensor 
 % parameters.
-function [ x ] = initialize_truth_state(initial_conditions)
-    x = initial_conditions;
+function [ x ] = initialize_truth_state(simpar)
+    x = convert_struct_to_array(simpar.general.ic);
 end

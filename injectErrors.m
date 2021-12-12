@@ -1,4 +1,3 @@
-function [ xhat_err ] = injectErrors( xhat_true, dele, simpar )
 %injectErrors injects errors into the state estimates
 %
 % Inputs:
@@ -15,14 +14,16 @@ function [ xhat_err ] = injectErrors( xhat_true, dele, simpar )
 % Date: 10-Dec-2018 11:54:42
 % Reference: 
 % Copyright 2018 Utah State University
+function [ xhat_err ] = injectErrors( xhat_true, dele, simpar )
+    % Get size of inputs
+    [~,m_x]     = size(xhat_true);
+    [~, m_delx] = size(dele);
 
-%Get size of inputs
-[~,m_x] = size(xhat_true);
-[~, m_delx] = size(dele);
-assert(m_x == m_delx);
-%Inject errors
-xhat_err = zeros(simpar.states.nxf,m_x);
-for i=1:m_x
-    xhat_err = [];
-end
+    assert(m_x == m_delx);
+
+    % Inject errors
+    xhat_err = zeros(simpar.states.nxf,m_x);
+    for i=1:m_x
+        xhat_err = xhat_true - dele;
+    end
 end
