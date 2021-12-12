@@ -7,5 +7,5 @@
 %   x: ECRV value
 %
 function x = ecrv(v, t, w)
-    x = -1/t * v + w
+    x = -1/t * v + w;
 end

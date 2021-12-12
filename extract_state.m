@@ -16,7 +16,7 @@ function [state] = extract_state(x, s, state_type)
     state.f3     = x(s.states.ix.pos_f3);
 
     % If we are extracting the truth states
-    if state_type == 'truth'
+    if strcmp(state_type, 'truth')
         state.qm = x(s.states.ix.mcmf_att);
     end
 end

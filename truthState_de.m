@@ -29,7 +29,7 @@ function xdot = truthState_de(x, input)
 
     % Make assignments
     xdot(simpar.states.ix.pos)      = s.vel;
-    xdot(simpar.states.ix.vel)      = calc_grav(s.pos, simpar) + input.thrust + w;
+    xdot(simpar.states.ix.vel)      = calc_grav(s.pos, simpar) + input.Tib'*(input.thrust) + w;
     xdot(simpar.states.ix.cam)      = ecrv(s.cam, simpar.general.tau_c, w);
     xdot(simpar.states.ix.acc_bias) = ecrv(s.bias, simpar.general.tau_b, w);
     xdot(simpar.states.ix.pos_f1)   = zeros(3,1);

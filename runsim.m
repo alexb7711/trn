@@ -64,13 +64,11 @@ xhat_buff(:,1) = initialize_nav_state(x_buff(:,1), simpar);
 s                 = extract_state(x_buff(:,1), simpar, 'truth');
 input_init.Tib    = Ti2b(s.pos, s.vel, simpar);
 input_init.n_a    = zeros(3,1);
+input_init.t      = 1;
 input_init.simpar = simpar;
 
 % Synthesize continuous sensor data at t_n-1
 ytilde_buff(:,1) = contMeas(x_buff(:,1), input_init);
-
-% Calculate thrust from measurement
-input_init.thrust = calc_thrust(x_buff(:,1), input_init);
 
 %Initialize the measurement counter
 k = 1;
@@ -99,16 +97,9 @@ for i=2:nstep
     %   Define any inputs to the truth state DE
     %   Perform one step of RK4 integration
 %% TODO: Implement
-    s                  = extract_state(x_buff(:,i-1), simpar, 'truth');
 
-    input_truth.u      = zeros(3,1);
-    input_truth.w      = zeros(3,1);
-    input_truth.n_a    = zeros(3,1);
-    input_truth.thrust = calc_thrust(x_buff(:,i-1), input_truth);
-
-    input_truth.simpar = simpar;
-    input_truth.Tib    = Ti2b(s.pos, s.vel, simpar);
-    x_buff(:,i)        = rk4('truthState_de', x_buff(:,i-1), input_truth, simpar.general.dt);
+    input_truth = inputTruth(x_buff, ytilde_buff, t, i, simpar);
+    x_buff(:,i) = rk4('truthState_de', x_buff(:,i-1), input_truth, simpar.general.dt);
 
     % Synthesize continuous sensor data at t_n
     ytilde_buff(:,i) = contMeas(x_buff(:,i), input_truth);
