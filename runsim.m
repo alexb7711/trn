@@ -85,7 +85,7 @@ if simpar.sim.errorPropTestEnable
     for i=1:length(fnames)
         delx_buff(i,1) = simpar.errorInjection.(fnames{i});
     end
-    xhat_buff(:,1) = injectErrors(truth2nav(x_buff(:,1)), delx_buff(:,1), simpar);
+    xhat_buff(:,1) = injectErrors(truth2nav(x_buff(:,1), simpar), delx_buff(:,1), simpar);
 end
 
 %%===============================================================================
@@ -96,8 +96,6 @@ for i=2:nstep
     %   Realize a sample of process noise (don't forget to scale Q by 1/dt!)
     %   Define any inputs to the truth state DE
     %   Perform one step of RK4 integration
-%% TODO: Implement
-
     input_truth = inputTruth(x_buff, ytilde_buff, t, i, simpar);
     x_buff(:,i) = rk4('truthState_de', x_buff(:,i-1), input_truth, simpar.general.dt);
 
@@ -109,12 +107,13 @@ for i=2:nstep
     %   Assign inputs to the navigation state DE
     %   Perform one step of RK4 integration
 %% TODO: Implement
-    % input_nav.ytilde = [];
-    % input_nav.simpar = simpar;
-    % xhat_buff(:,i)   = rk4('navState_de', xhat_buff(:,i-1), input_nav, simpar.general.dt);
-    % % Propagate the covariance to t_n
-    % input_cov.ytilde = [];
-    % input_cov.simpar = simpar;
+    input_nav      = inputNav(xhat_buff, ytilde_buff, t, i, x_buff(simpar.states.ix.mcmf_att,i-1), simpar);
+    xhat_buff(:,i) = rk4('navState_de', xhat_buff(:,i-1), input_nav, simpar.general.dt);
+
+    % Propagate the covariance to t_n
+    input_cov.ytilde = [];
+    input_cov.simpar = simpar;
+
 %% TODO: Implement
     % P_buff(:,:,i)    = rk4('navCov_de', P_buff(:,:,i-1), input_cov, simpar.general.dt);
 
@@ -133,10 +132,10 @@ for i=2:nstep
     % If discrete measurements are available, perform a Kalman update
     if abs(t(i)-t_kalman(k+1)) < simpar.general.dt*0.01
         %   Check error state propagation if simpar.general.errorPropTestEnable = true
-        if simpar.sim.errorPropTestEnable
-            checkErrorPropagation(x_buff(:,i), xhat_buff(:,i),...
-                delx_buff(:,i), simpar);
-        end
+        % if simpar.sim.errorPropTestEnable
+            % checkErrorPropagation(x_buff(:,i), xhat_buff(:,i),...
+                % delx_buff(:,i), simpar);
+        % end
         %Adjust the Kalman update index
         k = k + 1;
         %   For each available measurement

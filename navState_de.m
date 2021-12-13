@@ -1,4 +1,3 @@
-function xhatdot = navState_de(xhat,input)
 %navState_de computes the derivative of the nav state
 %
 % Inputs:
@@ -8,18 +7,26 @@ function xhatdot = navState_de(xhat,input)
 % Outputs
 %   xhatdot = nav state derivative (mixed units)
 %
-% Example Usage
-% xhatdot = navState_de(xhat,input)
+function xdot = navState_de(x,input)
 
-% Author: Randy Christensen
-% Date: 21-May-2019 10:40:10
-% Reference: none
-% Copyright 2019 Utah State University
+    %%---------------------------------------------------------------------------
+    % Unpack the inputs
+    simpar = input.simpar;
+    Tbi    = input.Tib';
 
-%% Unpack the inputs
-simpar = input.simpar;
-omegatilde = input.ytilde;
-%% Compute individual elements of x_dot
-%% Assign to output
-xhatdot = [];
+    %%---------------------------------------------------------------------------
+    % Compute individual elements of x_dot
+    % Convert state into structure
+    s  = extract_state(x, simpar, 'nav');
+    z3 = zeros(3,1);
+
+    %%---------------------------------------------------------------------------
+    % Assign to output
+    xdot(simpar.states.ix.pos, 1)      = s.vel;
+    xdot(simpar.states.ix.vel, 1)      = calc_grav(s.pos, simpar) + Tbi*(input.a_meas - s.bias);
+    xdot(simpar.states.ix.cam, 1)      = ecrv(s.cam, simpar.general.tau_c, z3);
+    xdot(simpar.states.ix.acc_bias, 1) = ecrv(s.bias, simpar.general.tau_b, z3);
+    xdot(simpar.states.ix.pos_f1, 1)   = zeros(3,1);
+    xdot(simpar.states.ix.pos_f2, 1)   = zeros(3,1);
+    xdot(simpar.states.ix.pos_f3, 1)   = zeros(3,1);
 end

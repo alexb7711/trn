@@ -11,6 +11,7 @@ function xdot = truthState_de(x, input)
     %%---------------------------------------------------------------------------
     %% Unpack the inputs
     simpar = input.simpar;
+    Tbi    = input.Tib';
     omega  = input.u;
     w      = input.w;
 
@@ -28,12 +29,12 @@ function xdot = truthState_de(x, input)
     xdot = zeros(simpar.states.nx,1);
 
     % Make assignments
-    xdot(simpar.states.ix.pos)      = s.vel;
-    xdot(simpar.states.ix.vel)      = calc_grav(s.pos, simpar) + input.Tib'*(input.thrust) + w;
-    xdot(simpar.states.ix.cam)      = ecrv(s.cam, simpar.general.tau_c, w);
-    xdot(simpar.states.ix.acc_bias) = ecrv(s.bias, simpar.general.tau_b, w);
-    xdot(simpar.states.ix.pos_f1)   = zeros(3,1);
-    xdot(simpar.states.ix.pos_f2)   = zeros(3,1);
-    xdot(simpar.states.ix.pos_f3)   = zeros(3,1);
-    xdot(simpar.states.ix.mcmf_att) = 1/2*quatmult(q_moon, s.qm);
+    xdot(simpar.states.ix.pos, 1)      = s.vel;
+    xdot(simpar.states.ix.vel, 1)      = calc_grav(s.pos, simpar) + Tbi*input.thrust + w;
+    xdot(simpar.states.ix.cam, 1)      = ecrv(s.cam, simpar.general.tau_c, w);
+    xdot(simpar.states.ix.acc_bias, 1) = ecrv(s.bias, simpar.general.tau_b, w);
+    xdot(simpar.states.ix.pos_f1, 1)   = zeros(3,1);
+    xdot(simpar.states.ix.pos_f2, 1)   = zeros(3,1);
+    xdot(simpar.states.ix.pos_f3, 1)   = zeros(3,1);
+    xdot(simpar.states.ix.mcmf_att, 1) = 1/2*quatmult(q_moon, s.qm);
 end
