@@ -12,6 +12,7 @@ function xdot = truthState_de(x, input)
     %% Unpack the inputs
     simpar = input.simpar;
     Tbi    = input.Tib';
+    t      = input.t;
     omega  = input.u;
     w      = input.w;
 

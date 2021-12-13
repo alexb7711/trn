@@ -76,6 +76,7 @@ k = 1;
 %Check that the error injection, calculation, and removal are all
 %consistent if the simpar.sim.checkErrDefConstEnable is enabled.
 if simpar.sim.checkErrDefConstEnable
+    input
     checkErrorDefConsistency(xhat_buff(:,1), x_buff(:,1), simpar)
 end
 
@@ -93,7 +94,8 @@ end
 for i=2:nstep
     %----------------------------------------------------------------------------
     % Update truth state structure for easy access
-    s = extract_state(x_buff(:,i-1), simpar, 'truth');
+    s     = extract_state(x_buff(:,i-1), simpar, 'truth');
+    s_nav = extract_state(xhat_buff(:,i-1), simpar, 'nav');
 
     %----------------------------------------------------------------------------
     % Propagate truth states to t_n
@@ -110,8 +112,8 @@ for i=2:nstep
     % Propagate navigation states to t_n using sensor data from t_n-1
     %   Assign inputs to the navigation state DE
     %   Perform one step of RK4 integration
-    input_nav      = inputNav(ytilde_buff(:,i), t, i, input_truth.Tib, simpar);
-    input_nav.thrust = input_truth.thrust;
+
+    input_nav      = inputNav(ytilde_buff(:,i), t, i, input_truth, simpar);
     xhat_buff(:,i) = rk4('navState_de', xhat_buff(:,i-1), input_nav, simpar.general.dt);
 
 %% TODO: Implement

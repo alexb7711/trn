@@ -23,8 +23,8 @@ function xdot = navState_de(x,input)
     %%---------------------------------------------------------------------------
     % Assign to output
     xdot(simpar.states.ix.pos, 1)      = s.vel;
-    xdot(simpar.states.ix.vel, 1)      = calc_grav(s.pos, simpar) + Tbi*(input.a_meas - s.bias);
-    % xdot(simpar.states.ix.vel, 1)      = calc_grav(s.pos, simpar) + Tbi*(input.thrust);
+    % xdot(simpar.states.ix.vel, 1)      = calc_grav(s.pos, simpar) + Tbi*(input.a_meas - s.bias);
+    xdot(simpar.states.ix.vel, 1)      = calc_grav(s.pos, simpar) + Tbi*(input.thrust);
     xdot(simpar.states.ix.cam, 1)      = ecrv(s.cam, simpar.general.tau_c, z3);
     xdot(simpar.states.ix.acc_bias, 1) = ecrv(s.bias, simpar.general.tau_b, z3);
     xdot(simpar.states.ix.pos_f1, 1)   = zeros(3,1);
