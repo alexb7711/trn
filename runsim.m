@@ -39,9 +39,9 @@ P_buff = zeros(simpar.states.nxfe,simpar.states.nxfe,nstep);
 ytilde_buff = zeros(simpar.general.n_inertialMeas,nstep);
 
 % Residual buffers (star tracker is included as an example)
-res_example          = zeros(3,nstep_aid);
-resCov_example       = zeros(3,3,nstep_aid);
-K_example_buff       = zeros(simpar.states.nxfe,3,nstep_aid);
+res_cam    = zeros(6,nstep_aid);
+resCov_cam = zeros(6,6,nstep_aid);
+K_cam_buff = zeros(simpar.states.nxfe,6,nstep_aid);
 
 %%===============================================================================
 %% Initialize the navigation covariance matrix
@@ -93,7 +93,7 @@ end
 for i=2:nstep
     %----------------------------------------------------------------------------
     % Update truth state structure for easy access
-    s = extract_state(x_buff(:,1), simpar, 'truth');
+    s = extract_state(x_buff(:,i-1), simpar, 'truth');
 
     %----------------------------------------------------------------------------
     % Propagate truth states to t_n
@@ -110,15 +110,15 @@ for i=2:nstep
     % Propagate navigation states to t_n using sensor data from t_n-1
     %   Assign inputs to the navigation state DE
     %   Perform one step of RK4 integration
-%% TODO: Implement
-    input_nav      = inputNav(xhat_buff, ytilde_buff, t, i, x_buff(simpar.states.ix.mcmf_att,i-1), simpar);
+    input_nav      = inputNav(ytilde_buff(:,i), t, i, input_truth.Tib, simpar);
+    input_nav.thrust = input_truth.thrust;
     xhat_buff(:,i) = rk4('navState_de', xhat_buff(:,i-1), input_nav, simpar.general.dt);
 
+%% TODO: Implement
     % Propagate the covariance to t_n
     input_cov.ytilde = [];
     input_cov.simpar = simpar;
 
-%% TODO: Implement
     % P_buff(:,:,i)    = rk4('navCov_de', P_buff(:,:,i-1), input_cov, simpar.general.dt);
 
     %----------------------------------------------------------------------------
@@ -161,8 +161,9 @@ for i=2:nstep
         input_predict    = inputPredict(xhat_buff, i, s, simpar);
 
         % Synthesize and predict measurement
-        ztilde_example    = cam.synthesize_measurement(input_synthesize);
-        ztildehat_example = cam.predict_measurement(input_predict);
+        exp_meas     = cam.synthesize_measurement(input_synthesize);
+        act_meas     = cam.predict_measurement(input_predict);
+        res_cam(:,k) = cam.compute_residual(exp_meas, act_meas);
 
 %% TODO: Implement
         % H_example         = example.compute_H();
@@ -187,20 +188,23 @@ if verbose
 end
 
 T_execution = toc;
-%Package up residuals
-navRes.example = res_example;
-navResCov.example = resCov_example;
-kalmanGains.example = K_example_buff;
-%Package up outputs
-traj = struct('navState',xhat_buff,...
-    'navCov',P_buff,...
-    'navRes',navRes,...
-    'navResCov',navResCov,...
-    'truthState',x_buff,...
-    'time_nav',t,...
-    'time_kalman',t_kalman,...
-    'executionTime',T_execution,...
-    'continuous_measurements',ytilde_buff,...
-    'kalmanGain',kalmanGains,...
-    'simpar',simpar);
+
+% Package up residuals
+navRes.cam      = res_cam;
+navResCov.cam   = resCov_cam;
+kalmanGains.cam = K_cam_buff;
+
+% Package up outputs
+traj = struct(                                ...
+'navState'                    , xhat_buff   , ...
+    'navCov'                  , P_buff      , ...
+    'navRes'                  , navRes      , ...
+    'navResCov'               , navResCov   , ...
+    'truthState'              , x_buff      , ...
+    'time_nav'                , t           , ...
+    'time_kalman'             , t_kalman    , ...
+    'executionTime'           , T_execution , ...
+    'continuous_measurements' , ytilde_buff , ...
+    'kalmanGain'              , kalmanGains , ...
+    'simpar'                  , simpar);
 end

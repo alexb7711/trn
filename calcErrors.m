@@ -19,13 +19,14 @@ function [ dele ] = calcErrors( xhat, x, simpar )
     [~, m_x]    = size(x);
     [~, m_xhat] = size(xhat);
 
+    % Verify that truth and nav states have the same amount of samples
     assert(m_x == m_xhat);
 
-    xhat_true = truth2nav(x, simpar);
-    dele      = nan(simpar.states.nxfe,m_x);
+    % Initialize dele buffer
+    dele = nan(simpar.states.nxfe,m_x);
 
     % Calculate errors
     for i=1:m_x
-        dele = xhat_true - xhat;
+        dele(:,i) = truth2nav(x(:,i),simpar) - xhat(:,i);
     end
 end

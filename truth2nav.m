@@ -14,5 +14,5 @@
 % Reference: 
 % Copyright 2019 Utah State University
 function [ x ] = truth2nav(x_t, simpar)
-    x = x_t(simpar.states.ixf.all);
+    x = x_t(simpar.states.ixf.all,1);
 end
