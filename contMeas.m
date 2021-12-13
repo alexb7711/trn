@@ -8,30 +8,19 @@
 % Outputs
 %   a_meas: Continuous measurement
 %
-function [ a_meas ] = contMeas(x, input)
-    %%---------------------------------------------------------------------------
-    % Extract input parameters
-    Tib    = input.Tib;
-    n_a    = input.n_a;
-    simpar = input.simpar;
+% function [ a_meas ] = contMeas(x, input)
+function [ a_meas ] = contMeas(x_new, x_old, input)
+    simpar = input.simpar
+    s_old  = extract_state(x_old, simpar, 'nav');
+    s_new  = extract_state(x_new, simpar, 'nav');
 
-    %%---------------------------------------------------------------------------
-    % Convert state into structure
-    s = extract_state(x, simpar, 'truth');
+    mu      = simpar.general.MU;
+    old_pos = s_old.pos;
+    a_grav  = calc_grav(s_old.pos, simpar);
 
-    if input.t < input.simpar.general.thrust_disable
-        %%-----------------------------------------------------------------------
-        % Calcualte gravity
-        a_grav = -calc_grav(simpar.general.R_M, simpar);
+    v_old   = s_old.vel;
+    v_new   = s_new.vel;
+    delta_t = simpar.general.dt;
 
-        %%-----------------------------------------------------------------------
-        % Calculate thrust
-        a_thrust = Tib*(simpar.general.n*a_grav*Tib(1,:)');
-
-        % Calculate thrust measurement
-        a_meas  = a_thrust + s.bias + n_a;
-    else
-        a_meas  = zeros(3,1) + s.bias + n_a;
-    end
-
+    a_meas = (v_new - v_old)/delta_t - a_grav + s_old.bias;
 end

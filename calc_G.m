@@ -1,4 +1,3 @@
-function [ G ] = calc_G( ~, simpar )
 %calc_G Calculates the process noise dynamic coupling matrix
 %
 % Inputs:
@@ -15,9 +14,18 @@ function [ G ] = calc_G( ~, simpar )
 % Date: 13-May-2020
 % Reference: None
 % Copyright 2020 Utah State University
+function [ G ] = calc_G( ~, input )
 
-%% Unpack the inputs
+    %----------------------------------------------------------------------------
+    % Unpack the inputs
+    simpar = input.simpar;
+    Tbi    = input.Tib';
 
-%% Compute G
-G = [];
+    %----------------------------------------------------------------------------
+    % Compute G
+    G = zeros(12, 21);
+    G(simpar.states.ix.vel      , simpar.states.ix.pos)      = -input.Tbi;
+    G(simpar.states.ix.vel      , simpar.states.ix.vel)      = eye(3);
+    G(simpar.states.ix.cam      , simpar.states.ix.cam)      = eye(3);
+    G(simpar.states.ix.acc_bias , simpar.states.ix.acc_bias) = eye(3);
 end

@@ -68,7 +68,7 @@ input_init.t      = 1;
 input_init.simpar = simpar;
 
 % Synthesize continuous sensor data at t_n-1
-ytilde_buff(:,1) = contMeas(x_buff(:,1), input_init);
+% ytilde_buff(:,1) = contMeas(x_buff(:,1), input_init);
 
 %Initialize the measurement counter
 k = 1;
@@ -80,7 +80,7 @@ if simpar.sim.checkErrDefConstEnable
     checkErrorDefConsistency(xhat_buff(:,1), x_buff(:,1), simpar)
 end
 
-%Inject errors if the simpar.sim.errorPropTestEnable flag is enabled
+% Inject errors if the simpar.sim.errorPropTestEnable flag is enabled
 if simpar.sim.errorPropTestEnable
     fnames = fieldnames(simpar.errorInjection);
     for i=1:length(fnames)
@@ -106,7 +106,7 @@ for i=2:nstep
     x_buff(:,i) = rk4('truthState_de', x_buff(:,i-1), input_truth, simpar.general.dt);
 
     % Synthesize continuous sensor data at t_n
-    ytilde_buff(:,i) = contMeas(x_buff(:,i), input_truth);
+    ytilde_buff(:,i) = contMeas(x_buff(:,i), x_buff(:,i-1), input_truth);
 
     %----------------------------------------------------------------------------
     % Propagate navigation states to t_n using sensor data from t_n-1
@@ -125,14 +125,15 @@ for i=2:nstep
 
     %----------------------------------------------------------------------------
     % Propagate the error state from tn-1 to tn if errorPropTestEnable == 1
-%% TODO: Implement
-    % if simpar.general.errorPropTestEnable
-        % input_delx.xhat   = xhat_buff(:,i-1);
-        % input_delx.ytilde = [];
-        % input_delx.simpar = simpar;
-        % delx_buff(:,i)    = rk4('errorState_de', delx_buff(:,i-1), ...
-            % input_delx, simpar.general.dt);
-    % end
+
+    if simpar.sim.errorPropTestEnable
+        input_delx.xhat   = xhat_buff(:,i-1);
+        input_delx.t      = t(i);
+        input_delx.ytilde = ytilde_buff(:,i);
+        input_delx.simpar = simpar;
+        input_delx.Tib    = input_truth.Tib;
+        delx_buff(:,i)    = rk4('errorState_de', delx_buff(:,i-1), input_delx, simpar.general.dt);
+    end
 
     %----------------------------------------------------------------------------
     % If discrete measurements are available, perform a Kalman update
