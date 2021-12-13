@@ -92,6 +92,10 @@ end
 %% Loop over each time step in the simulation
 for i=2:nstep
     %----------------------------------------------------------------------------
+    % Update truth state structure for easy access
+    s = extract_state(x_buff(:,1), simpar, 'truth');
+
+    %----------------------------------------------------------------------------
     % Propagate truth states to t_n
     %   Realize a sample of process noise (don't forget to scale Q by 1/dt!)
     %   Define any inputs to the truth state DE
@@ -132,12 +136,13 @@ for i=2:nstep
     % If discrete measurements are available, perform a Kalman update
     if abs(t(i)-t_kalman(k+1)) < simpar.general.dt*0.01
         %   Check error state propagation if simpar.general.errorPropTestEnable = true
-        % if simpar.sim.errorPropTestEnable
-            % checkErrorPropagation(x_buff(:,i), xhat_buff(:,i),...
-                % delx_buff(:,i), simpar);
-        % end
+        if simpar.sim.errorPropTestEnable
+            checkErrorPropagation(x_buff(:,i), xhat_buff(:,i), delx_buff(:,i), simpar);
+        end
+
         %Adjust the Kalman update index
         k = k + 1;
+
         %   For each available measurement
         %       Synthesize the noisy measurement, ztilde
         %       Predict the measurement, ztildehat
@@ -151,10 +156,15 @@ for i=2:nstep
         %       Update and save the covariance matrix
         %       Correct and save the navigation states
 
-%% TODO: Implement
+        % Create input compools for synthesize and predict measurement
+        input_synthesize = inputSynthesize(x_buff, i, s, simpar);
+        input_predict    = inputPredict(xhat_buff, i, s, simpar);
 
-        % ztilde_example    = example.synthesize_measurement();
-        % ztildehat_example = example.predict_measurement();
+        % Synthesize and predict measurement
+        ztilde_example    = cam.synthesize_measurement(input_synthesize);
+        ztildehat_example = cam.predict_measurement(input_predict);
+
+%% TODO: Implement
         % H_example         = example.compute_H();
 
         % example.validate_linearization();
