@@ -174,20 +174,24 @@ for i=2:nstep
         input_predict    = inputPredict(xhat_buff, i, s, simpar);
 
         % Synthesize and predict measurement
-        % exp_meas     = cam.synthesize_measurement(input_synthesize);
-        % act_meas     = cam.predict_measurement(input_predict);
-        % res_cam(:,k) = cam.compute_residual(exp_meas, act_meas);
-        % H_cam        = cam.compute_H(xhat_buff(:,i), input_predict);
-
+        exp_meas     = cam.synthesize_measurement(input_synthesize);
+        act_meas     = cam.predict_measurement(input_predict);
+        res_cam(:,k) = cam.compute_residual(exp_meas, act_meas);
         % cam.validate_linearization(x_buff(:,i), input_synthesize, s, simpar, i);
 
-%% TODO: Implement
-        % res_example(:,k)      = example.compute_residual();
-        % resCov_example(:,k)   = compute_residual_cov();
-        % K_example_buff(:,:,k) = compute_Kalman_gain();
-        % del_x                 = estimate_error_state_vector();
-        % P_buff(:,:,k)         = update_covariance();
-        % xhat_buff(:,i)        = correctErrors(xhat_buff(:,i), dele_x);
+        % Initialize kalman matricies
+        sig_cu = simpar.truth.params.sig_cu;
+        sig_cv = simpar.truth.params.sig_cv;
+        R      = diag([sig_cu, sig_cv, sig_cu, sig_cv, sig_cu, sig_cv])^2;
+        G      = 1;
+
+        H_cam             = cam.compute_H(xhat_buff(:,i), input_predict);
+        resCov_cam(:,:,k) = compute_residual_cov(H_cam, P_buff(:,:,i), R);
+        K_cam_buff(:,:,k) = compute_Kalman_gain(H_cam, P_buff(:,:,i), resCov_cam(:,:,k));
+        del_x             = estimate_error_state_vector(res_cam(:,k), K_cam_buff(:,:,k));
+        P_buff(:,:,i)     = update_covariance(P_buff(:,:,i), K_cam_buff(:,:,k), H_cam, R, G, simpar);
+        xhat_buff(:,i)    = correctErrors(xhat_buff(:,i), del_x, simpar);
+
     end
 
     if verbose && mod(i,100) == 0
