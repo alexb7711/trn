@@ -12,37 +12,37 @@ navCov = traj.navCov;
 nav_errors = calcErrors( navState, traj.truthState, simpar );
 h_figs = [];
 %% Star tracker residuals
-if simpar.general.processStarTrackerEnable
-    axis_str = {'$x_{st}$','$y_{st}$','$z_{st}$'};
-    for i=1:3
-        h_figs(end+1) = figure('Name',sprintf('res_st_%d',i)); %#ok<*AGROW>
-        stairs(traj.time_kalman,traj.navRes.startracker(i,:)'); hold on
-        stairs(traj.time_kalman,...
-            3.*sqrt(squeeze(traj.navResCov.startracker(i,i,:))),'r--');
-        stairs(traj.time_kalman,...
-            -3.*sqrt(squeeze(traj.navResCov.startracker(i,i,:))),'r--');
-        xlabel('time$\left(s\right)$','Interpreter','latex');
-        ystring = sprintf('%s Star Tracker Residual(rad)',axis_str{i});
-        ylabel(ystring,'Interpreter','latex')
-        grid on;
-    end
-end
+% if simpar.general.processStarTrackerEnable
+    % axis_str = {'$x_{st}$','$y_{st}$','$z_{st}$'};
+    % for i=1:3
+        % h_figs(end+1) = figure('Name',sprintf('res_st_%d',i)); %#ok<*AGROW>
+        % stairs(traj.time_kalman,traj.navRes.startracker(i,:)'); hold on
+        % stairs(traj.time_kalman,...
+            % 3.*sqrt(squeeze(traj.navResCov.startracker(i,i,:))),'r--');
+        % stairs(traj.time_kalman,...
+            % -3.*sqrt(squeeze(traj.navResCov.startracker(i,i,:))),'r--');
+        % xlabel('time$\left(s\right)$','Interpreter','latex');
+        % ystring = sprintf('%s Star Tracker Residual(rad)',axis_str{i});
+        % ylabel(ystring,'Interpreter','latex')
+        % grid on;
+    % end
+% end
 %% Visual odometry residuals
-if simpar.general.processVisualOdometryEnable
-    axis_str = {'$x_{c}$','$y_{c}$','$z_{c}$'};
-    for i=1:3
-        h_figs(end+1) = figure('Name',sprintf('res_vo_%d',i)); %#ok<*AGROW>
-        stairs(traj.time_kalman,traj.navRes.vo(i,:)'); hold on
-        stairs(traj.time_kalman,...
-            3.*sqrt(squeeze(traj.navResCov.vo(i,i,:))),'r--');
-        stairs(traj.time_kalman,...
-            -3.*sqrt(squeeze(traj.navResCov.vo(i,i,:))),'r--');
-        xlabel('time$\left(s\right)$','Interpreter','latex');
-        ystring = sprintf('%s VO Residual(rad)',axis_str{i});
-        ylabel(ystring,'Interpreter','latex')
-        grid on;
-    end
-end
+% if simpar.general.processVisualOdometryEnable
+    % axis_str = {'$x_{c}$','$y_{c}$','$z_{c}$'};
+    % for i=1:3
+        % h_figs(end+1) = figure('Name',sprintf('res_vo_%d',i)); %#ok<*AGROW>
+        % stairs(traj.time_kalman,traj.navRes.vo(i,:)'); hold on
+        % stairs(traj.time_kalman,...
+            % 3.*sqrt(squeeze(traj.navResCov.vo(i,i,:))),'r--');
+        % stairs(traj.time_kalman,...
+            % -3.*sqrt(squeeze(traj.navResCov.vo(i,i,:))),'r--');
+        % xlabel('time$\left(s\right)$','Interpreter','latex');
+        % ystring = sprintf('%s VO Residual(rad)',axis_str{i});
+        % ylabel(ystring,'Interpreter','latex')
+        % grid on;
+    % end
+% end
 %% Position estimation error
 axis_str = {'X_{i}','Y_{i}','Z_{i}'};
 i_axis = 0;

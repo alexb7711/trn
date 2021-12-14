@@ -26,6 +26,6 @@ function [ x_hat_c ] = correctErrors( x_hat, dele, simpar)
 
     % Correct errors
     for i=1:m_x
-        x_hat_c = x_hat + dele;
+        x_hat_c( = x_hat(i) + dele(i);
     end
 end

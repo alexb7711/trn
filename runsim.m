@@ -45,8 +45,7 @@ K_cam_buff = zeros(simpar.states.nxfe,6,nstep_aid);
 
 %%===============================================================================
 %% Initialize the navigation covariance matrix
-%% TODO: Implement
-% P_buff(:,:,1) = initialize_covariance();
+P_buff(:,:,1) = initialize_covariance(simpar);
 
 %%===============================================================================
 %% Initialize the truth state vector
@@ -55,8 +54,8 @@ x_buff(:,1) = initialize_truth_state(simpar);
 %%===============================================================================
 %% Initialize the navigation state vector
 %% TODO: Change when P_buff is implemented
-% xhat_buff(:,1) = initialize_nav_state(x_buff(:,1), P_buff(:,1), simpar);
-xhat_buff(:,1) = initialize_nav_state(x_buff(:,1), simpar);
+xhat_buff(:,1) = initialize_nav_state(x_buff(:,1), P_buff(:,1), simpar);
+% xhat_buff(:,1) = initialize_nav_state(x_buff(:,1), simpar);
 
 %%===============================================================================
 %% Miscellaneous calcs
@@ -90,6 +89,12 @@ if simpar.sim.errorPropTestEnable
 end
 
 %%===============================================================================
+%% Define PSD processes
+Q_a = 2*simpar.truth.params.sig_accel_ss^2/simpar.general.tau_b;
+Q_c = 2*simpar.truth.params.sig_c_ss^2/simpar.general.tau_c;
+Q_g = simpar.truth.params.Q_grav;
+
+%%===============================================================================
 %% Loop over each time step in the simulation
 for i=2:nstep
     %----------------------------------------------------------------------------
@@ -102,7 +107,11 @@ for i=2:nstep
     %   Realize a sample of process noise (don't forget to scale Q by 1/dt!)
     %   Define any inputs to the truth state DE
     %   Perform one step of RK4 integration
-    input_truth = inputTruth(x_buff, ytilde_buff, t, i, simpar);
+    input_truth    = inputTruth(x_buff, ytilde_buff, t, i, simpar);
+    input_truth.wa = sqrt(Q_a /simpar.general.dt) * randn(3,1);
+    input_truth.wc = sqrt(Q_c /simpar.general.dt) * randn(3,1);
+    input_truth.wg = sqrt(Q_g /simpar.general.dt) * randn(3,1);
+
     x_buff(:,i) = rk4('truthState_de', x_buff(:,i-1), input_truth, simpar.general.dt);
 
     % Synthesize continuous sensor data at t_n
@@ -116,12 +125,13 @@ for i=2:nstep
     input_nav      = inputNav(ytilde_buff(:,i), t, i, input_truth, simpar);
     xhat_buff(:,i) = rk4('navState_de', xhat_buff(:,i-1), input_nav, simpar.general.dt);
 
-%% TODO: Implement
     % Propagate the covariance to t_n
-    input_cov.ytilde = [];
+    input_cov.ytilde = input_truth.a_meas;
     input_cov.simpar = simpar;
+    input_cov.xhat   = xhat_buff(:,i);
+    input_cov.Tib    = input_truth.Tib;
 
-    % P_buff(:,:,i)    = rk4('navCov_de', P_buff(:,:,i-1), input_cov, simpar.general.dt);
+    P_buff(:,:,i)    = rk4('navCov_de', P_buff(:,:,i-1), input_cov, simpar.general.dt);
 
     %----------------------------------------------------------------------------
     % Propagate the error state from tn-1 to tn if errorPropTestEnable == 1
@@ -164,12 +174,12 @@ for i=2:nstep
         input_predict    = inputPredict(xhat_buff, i, s, simpar);
 
         % Synthesize and predict measurement
-        exp_meas     = cam.synthesize_measurement(input_synthesize);
-        act_meas     = cam.predict_measurement(input_predict);
-        res_cam(:,k) = cam.compute_residual(exp_meas, act_meas);
-        H_cam        = cam.compute_H(xhat_buff(:,i), input_predict);
+        % exp_meas     = cam.synthesize_measurement(input_synthesize);
+        % act_meas     = cam.predict_measurement(input_predict);
+        % res_cam(:,k) = cam.compute_residual(exp_meas, act_meas);
+        % H_cam        = cam.compute_H(xhat_buff(:,i), input_predict);
 
-        cam.validate_linearization(x_buff(:,i), input_synthesize, s, simpar, i);
+        % cam.validate_linearization(x_buff(:,i), input_synthesize, s, simpar, i);
 
 %% TODO: Implement
         % res_example(:,k)      = example.compute_residual();
@@ -177,7 +187,7 @@ for i=2:nstep
         % K_example_buff(:,:,k) = compute_Kalman_gain();
         % del_x                 = estimate_error_state_vector();
         % P_buff(:,:,k)         = update_covariance();
-        % xhat_buff(:,i)        = correctErrors();
+        % xhat_buff(:,i)        = correctErrors(xhat_buff(:,i), dele_x);
     end
 
     if verbose && mod(i,100) == 0

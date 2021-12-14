@@ -1,4 +1,3 @@
-function [ output_args ] = update_covariance( input_args )
 %update_covariance updates the covariance matrix
 %
 % Inputs:
@@ -9,16 +8,6 @@ function [ output_args ] = update_covariance( input_args )
 %   Output1 = description (units)
 %   Output2 = description (units)
 %
-% Example Usage
-% [ output_args ] = update_covariance( input_args )
-%
-% See also FUNC1, FUNC2
-
-% Author: Randy Christensen
-% Date: 31-Aug-2020 16:02:09
-% Reference: 
-% Copyright 2020 Utah State University
-
-%Don't forget to perform numerical checking and conditioning of covariance
-%matrix
+function [ cov_res ] = update_covariance( H,P,R )
+    cov_res = H*P*H' + R;
 end
