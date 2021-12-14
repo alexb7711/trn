@@ -185,12 +185,12 @@ for i=2:nstep
         R      = diag([sig_cu, sig_cv, sig_cu, sig_cv, sig_cu, sig_cv])^2;
         G      = 1;
 
-        H_cam             = cam.compute_H(xhat_buff(:,i), input_predict);
-        resCov_cam(:,:,k) = compute_residual_cov(H_cam, P_buff(:,:,i), R);
-        K_cam_buff(:,:,k) = compute_Kalman_gain(H_cam, P_buff(:,:,i), resCov_cam(:,:,k));
-        del_x             = estimate_error_state_vector(res_cam(:,k), K_cam_buff(:,:,k));
-        P_buff(:,:,i)     = update_covariance(P_buff(:,:,i), K_cam_buff(:,:,k), H_cam, R, G, simpar);
-        xhat_buff(:,i)    = correctErrors(xhat_buff(:,i), del_x, simpar);
+        % H_cam             = cam.compute_H(xhat_buff(:,i), input_predict);
+        % resCov_cam(:,:,k) = compute_residual_cov(H_cam, P_buff(:,:,i), R);
+        % K_cam_buff(:,:,k) = compute_Kalman_gain(H_cam, P_buff(:,:,i), resCov_cam(:,:,k));
+        % del_x             = estimate_error_state_vector(res_cam(:,k), K_cam_buff(:,:,k));
+        % P_buff(:,:,i)     = update_covariance(P_buff(:,:,i), K_cam_buff(:,:,k), H_cam, R, G, simpar);
+        % xhat_buff(:,i)    = correctErrors(xhat_buff(:,i), del_x, simpar);
 
     end
 
