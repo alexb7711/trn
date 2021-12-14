@@ -167,12 +167,11 @@ for i=2:nstep
         exp_meas     = cam.synthesize_measurement(input_synthesize);
         act_meas     = cam.predict_measurement(input_predict);
         res_cam(:,k) = cam.compute_residual(exp_meas, act_meas);
+        H_cam        = cam.compute_H(xhat_buff(:,i), input_predict);
+
+        cam.validate_linearization(x_buff(:,i), input_synthesize, s, simpar, i);
 
 %% TODO: Implement
-        % H_example         = example.compute_H();
-
-        % example.validate_linearization();
-
         % res_example(:,k)      = example.compute_residual();
         % resCov_example(:,k)   = compute_residual_cov();
         % K_example_buff(:,:,k) = compute_Kalman_gain();

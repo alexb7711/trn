@@ -1,4 +1,3 @@
-function [ output_args ] = validate_linearization_example( input_args )
 %validate_linearization_example validates the calculation of the
 %measurement sensitivity matrix
 %
@@ -10,31 +9,43 @@ function [ output_args ] = validate_linearization_example( input_args )
 %   Output1 = description (units)
 %   Output2 = description (units)
 %
-% Example Usage
-% [ output_args ] = validate_linearization_example( input_args )
-%
-% See also FUNC1, FUNC2
+function [ ] = validate_linearization(x, input_synthesize, s, simpar, i)
+    simpar = input_synthesize.simpar;
 
-% Author: Randy Christensen
-% Date: 31-Aug-2020 16:01:19
-% Reference: 
-% Copyright 2020 Utah State University
+    %%---------------------------------------------------------------------------
+    %% Inject Error
+    fnames        = fieldnames(simpar.errorInjection);
+    dele_injected = zeros(numel(fnames),1);
 
-%% Inject Error
-fnames = fieldnames(simpar.errorInjection);
-dele_injected = zeros(numel(fnames),1);
-for j=1:length(fnames)
-    dele_injected(j) = simpar.errorInjection.(fnames{j});
-end
-xhat = injectErrors(truth2nav(x), dele_injected, simpar);
-%% Calculate residual
-z_tilde = example.synthesize_measurement(x, phat_m, t, simpar);
-delz_nl = example.compute_residual(xhat, z_tilde, phat_m, t, simpar);
-H = example.compute_H(xhat, phat_m, t, simpar);
-delz_l = H*dele_injected;
-%% Compare linear and nonlinear residuals
-measLinTable.delz_nl = delz_nl;
-measLinTable.delz_l = delz_l;
-measLinTable.difference = delz_nl - delz_l;
-disp(struct2table(measLinTable));
+    for j = 1:length(fnames)
+        dele_injected(j) = simpar.errorInjection.(fnames{j});
+    end
+
+    xhat = injectErrors(truth2nav(x, simpar), dele_injected, simpar);
+
+    %%---------------------------------------------------------------------------
+    % Calculate residual
+
+    % Calculate input_predict
+    s_hat                = extract_state(xhat, simpar, 'nav');
+    input_predict.simpar = simpar;
+    input_predict.Tib    = Ti2b(s_hat.pos, s_hat.vel, simpar);
+    input_predict.Tbc    = Tb2c(xhat, simpar);
+    input_predict.Tmi    = Tm2i(s.qm);
+    input_predict.x      = xhat;
+
+    exp_meas             = cam.synthesize_measurement(input_synthesize);
+    act_meas             = cam.predict_measurement(input_predict);
+    delz_nl              = cam.compute_residual(exp_meas, act_meas);
+
+    H                    = cam.compute_H(xhat, input_predict);
+    delz_l               = H*dele_injected;
+
+    %%---------------------------------------------------------------------------
+    % Compare linear and nonlinear residuals
+    measLinTable.delz_nl    = delz_nl;
+    measLinTable.delz_l     = delz_l;
+    measLinTable.difference = delz_nl - delz_l;
+
+    disp(struct2table(measLinTable));
 end
